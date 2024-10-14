@@ -4,6 +4,9 @@ import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Array "mo:base/Array";
+import Time "mo:base/Time";
+import Int "mo:base/Int";
+import Debug "mo:base/Debug";
 
 actor {
   stable var familyNameStable : Text = "Smith Family";
@@ -28,10 +31,18 @@ actor {
     authTokens.get(member)
   };
 
-  // Placeholder function for fetching member events
+  // This function would typically call out to Google Calendar API
+  // For demonstration, we're returning mock data
   public func getMemberEvents(member : Text) : async [{summary : Text; start : Text}] {
-    // This is a mock implementation. In a real scenario, you would fetch actual events.
-    [{summary = "Mock Event 1"; start = "2023-06-01T09:00:00"}, {summary = "Mock Event 2"; start = "2023-06-01T14:00:00"}]
+    let now = Time.now();
+    let day = 86400000000000; // nanoseconds in a day
+    [
+      {summary = "Meeting"; start = Int.toText(now)},
+      {summary = "Lunch"; start = Int.toText(now + day)},
+      {summary = "Gym"; start = Int.toText(now + 2 * day)},
+      {summary = "Movie Night"; start = Int.toText(now + 3 * day)},
+      {summary = "Doctor Appointment"; start = Int.toText(now + 4 * day)}
+    ]
   };
 
   system func preupgrade() {

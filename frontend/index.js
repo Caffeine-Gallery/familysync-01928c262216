@@ -32,43 +32,84 @@ async function handleAuthenticated() {
 async function displayCalendar() {
   try {
     const familyMembers = await backend.getFamilyMembers();
+    const calendarTabs = document.getElementById('calendar-tabs');
     const calendarContainer = document.getElementById('calendar-container');
-    calendarContainer.innerHTML = ''; // Clear previous content
     
-    for (const member of familyMembers) {
-      const memberDiv = document.createElement('div');
-      memberDiv.className = 'member-calendar';
-      memberDiv.innerHTML = `<h2>${member}</h2><div id="${member}-events"></div>`;
-      calendarContainer.appendChild(memberDiv);
-      
-      const events = await fetchMemberEvents(member);
-      displayMemberEvents(member, events);
-    }
+    calendarTabs.innerHTML = '';
+    calendarContainer.innerHTML = '';
+    
+    familyMembers.forEach((member, index) => {
+      const tab = document.createElement('button');
+      tab.textContent = member;
+      tab.classList.add('calendar-tab');
+      if (index === 0) tab.classList.add('active');
+      tab.onclick = () => switchTab(member);
+      calendarTabs.appendChild(tab);
+
+      const calendar = document.createElement('div');
+      calendar.id = `${member}-calendar`;
+      calendar.classList.add('member-calendar');
+      if (index === 0) calendar.classList.add('active');
+      calendarContainer.appendChild(calendar);
+    });
+
+    await fetchAndDisplayEvents(familyMembers[0]);
   } catch (error) {
     console.error('Error displaying calendar:', error);
-    // Display error message to user
     document.getElementById('calendar-container').innerHTML = '<p>Error loading calendar. Please try again later.</p>';
   }
 }
 
-async function fetchMemberEvents(member) {
+async function switchTab(member) {
+  document.querySelectorAll('.calendar-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.member-calendar').forEach(calendar => calendar.classList.remove('active'));
+  
+  document.querySelector(`button.calendar-tab:nth-child(${Array.from(document.querySelectorAll('.calendar-tab')).findIndex(tab => tab.textContent === member) + 1})`).classList.add('active');
+  document.getElementById(`${member}-calendar`).classList.add('active');
+
+  await fetchAndDisplayEvents(member);
+}
+
+async function fetchAndDisplayEvents(member) {
   try {
-    // This is a placeholder. In a real implementation, you would fetch events from your backend
-    // which would in turn fetch from Google Calendar or store events itself.
-    const response = await backend.getMemberEvents(member);
-    return response;
+    const events = await backend.getMemberEvents(member);
+    displayMemberEvents(member, events);
   } catch (error) {
     console.error(`Error fetching events for ${member}:`, error);
-    return [];
+    document.getElementById(`${member}-calendar`).innerHTML = '<p>Error loading events. Please try again later.</p>';
   }
 }
 
 function displayMemberEvents(member, events) {
-  const eventContainer = document.getElementById(`${member}-events`);
-  if (events.length === 0) {
-    eventContainer.innerHTML = '<p>No events scheduled.</p>';
-  } else {
-    const eventList = events.map(event => `<li>${event.summary} (${event.start})</li>`).join('');
-    eventContainer.innerHTML = `<ul>${eventList}</ul>`;
+  const calendarDiv = document.getElementById(`${member}-calendar`);
+  calendarDiv.innerHTML = '';
+
+  const today = new Date();
+  const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + i);
+    
+    const dayColumn = document.createElement('div');
+    dayColumn.classList.add('day-column');
+    
+    const dayHeader = document.createElement('h3');
+    dayHeader.textContent = day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    dayColumn.appendChild(dayHeader);
+
+    const dayEvents = events.filter(event => {
+      const eventDate = new Date(event.start);
+      return eventDate.toDateString() === day.toDateString();
+    });
+
+    dayEvents.forEach(event => {
+      const eventDiv = document.createElement('div');
+      eventDiv.classList.add('event');
+      eventDiv.textContent = `${event.summary} (${new Date(event.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+      dayColumn.appendChild(eventDiv);
+    });
+
+    calendarDiv.appendChild(dayColumn);
   }
 }

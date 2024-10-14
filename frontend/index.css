@@ -16,29 +16,71 @@ body {
     color: #333;
 }
 
-#calendar-container {
+#calendar-tabs {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: center;
+    margin-bottom: 20px;
 }
 
-.member-calendar {
+.calendar-tab {
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: none;
+    background-color: #ddd;
+    cursor: pointer;
+}
+
+.calendar-tab.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#calendar-container {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 10px;
-    padding: 15px;
-    width: calc(50% - 20px);
+    padding: 20px;
 }
 
-.member-calendar h2 {
-    color: #444;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
+.member-calendar {
+    display: none;
+}
+
+.member-calendar.active {
+    display: flex;
+}
+
+.day-column {
+    flex: 1;
+    min-width: 120px;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+}
+
+.day-column:last-child {
+    border-right: none;
+}
+
+.day-column h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #333;
+}
+
+.event {
+    background-color: #e6f3ff;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
 }
 
 @media (max-width: 768px) {
-    .member-calendar {
-        width: 100%;
+    #calendar-container {
+        overflow-x: auto;
+    }
+    
+    .member-calendar.active {
+        width: 700px;
     }
 }
