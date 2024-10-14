@@ -28,6 +28,12 @@ actor {
     authTokens.get(member)
   };
 
+  // Placeholder function for fetching member events
+  public func getMemberEvents(member : Text) : async [{summary : Text; start : Text}] {
+    // This is a mock implementation. In a real scenario, you would fetch actual events.
+    [{summary = "Mock Event 1"; start = "2023-06-01T09:00:00"}, {summary = "Mock Event 2"; start = "2023-06-01T14:00:00"}]
+  };
+
   system func preupgrade() {
     authTokensEntries := Iter.toArray(authTokens.entries());
   };
