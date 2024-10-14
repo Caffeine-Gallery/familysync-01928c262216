@@ -1,0 +1,6 @@
+service : {
+  getAuthToken: (text) -> (opt text) query;
+  getFamilyMembers: () -> (vec text);
+  getFamilyName: () -> (text);
+  setAuthToken: (text, text) -> ();
+}
