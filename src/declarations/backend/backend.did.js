@@ -5,7 +5,7 @@ export const idlFactory = ({ IDL }) => {
     'getFamilyName' : IDL.Func([], [IDL.Text], []),
     'getMemberAvatar' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
     'getMemberEvents' : IDL.Func(
-        [IDL.Text],
+        [IDL.Text, IDL.Text],
         [IDL.Vec(IDL.Record({ 'summary' : IDL.Text, 'start' : IDL.Text }))],
         [],
       ),

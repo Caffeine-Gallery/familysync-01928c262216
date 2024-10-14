@@ -45,23 +45,36 @@ actor {
     }
   };
 
-  // This function would typically call out to Google Calendar API
-  // For demonstration, we're returning mock data
-  public func getMemberEvents(member : Text) : async [{summary : Text; start : Text}] {
+  public func getMemberEvents(member : Text, viewType : Text) : async [{summary : Text; start : Text}] {
     switch (authTokens.get(member)) {
       case (null) { throw Error.reject("Member not authenticated with Google Calendar") };
       case (?token) {
         // Here you would use the token to fetch events from Google Calendar API
-        // For now, we'll return mock data
+        // For now, we'll return mock data based on the viewType
         let now = Time.now();
         let day = 86400000000000; // nanoseconds in a day
-        [
-          {summary = "Meeting"; start = Int.toText(now)},
-          {summary = "Lunch"; start = Int.toText(now + day)},
-          {summary = "Gym"; start = Int.toText(now + 2 * day)},
-          {summary = "Movie Night"; start = Int.toText(now + 3 * day)},
-          {summary = "Doctor Appointment"; start = Int.toText(now + 4 * day)}
-        ]
+        let week = 7 * day;
+        let month = 30 * day;
+
+        let (startTime, endTime) = switch (viewType) {
+          case ("day") (now, now + day);
+          case ("week") (now, now + week);
+          case ("month") (now, now + month);
+          case (_) (now, now + week); // default to week view
+        };
+
+        // Generate mock events within the time range
+        var events : [{summary : Text; start : Text}] = [];
+        var currentTime = startTime;
+        while (currentTime < endTime) {
+          events := Array.append(events, [{
+            summary = "Event " # Int.toText(Array.size(events) + 1);
+            start = Int.toText(currentTime);
+          }]);
+          currentTime += day;
+        };
+
+        events
       };
     }
   };

@@ -8,7 +8,7 @@ export interface _SERVICE {
   'getFamilyName' : ActorMethod<[], string>,
   'getMemberAvatar' : ActorMethod<[string], string>,
   'getMemberEvents' : ActorMethod<
-    [string],
+    [string, string],
     Array<{ 'summary' : string, 'start' : string }>
   >,
   'setAuthToken' : ActorMethod<[string, string], undefined>,

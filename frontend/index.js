@@ -2,6 +2,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import { backend } from 'declarations/backend';
 
 let authClient;
+let currentView = 'week';
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -10,10 +11,13 @@ async function init() {
   document.getElementById('family-name').textContent = familyName;
 
   authClient = await AuthClient.create();
+  const authButton = document.getElementById('auth-button');
+  authButton.onclick = login;
+
   if (await authClient.isAuthenticated()) {
     handleAuthenticated();
   } else {
-    document.getElementById('auth-button').onclick = login;
+    authButton.style.display = 'block';
   }
 }
 
@@ -39,6 +43,16 @@ async function displayCalendar() {
     for (const member of familyMembers) {
       const memberColumn = document.createElement('div');
       memberColumn.classList.add('member-column');
+
+      const viewSelector = document.createElement('div');
+      viewSelector.classList.add('view-selector');
+      ['day', 'week', 'month'].forEach(view => {
+        const button = document.createElement('button');
+        button.textContent = view.charAt(0).toUpperCase() + view.slice(1);
+        button.onclick = () => changeView(view, member);
+        viewSelector.appendChild(button);
+      });
+      memberColumn.appendChild(viewSelector);
 
       const avatar = document.createElement('img');
       avatar.src = await backend.getMemberAvatar(member);
@@ -67,7 +81,7 @@ async function displayCalendar() {
 
 async function fetchAndDisplayEvents(member, calendarElement) {
   try {
-    const events = await backend.getMemberEvents(member);
+    const events = await backend.getMemberEvents(member, currentView);
     displayMemberEvents(events, calendarElement);
   } catch (error) {
     console.error(`Error fetching events for ${member}:`, error);
@@ -79,22 +93,34 @@ function displayMemberEvents(events, calendarElement) {
   calendarElement.innerHTML = '';
 
   const today = new Date();
-  const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+  let startDate, endDate;
 
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(weekStart);
-    day.setDate(day.getDate() + i);
-    
+  switch (currentView) {
+    case 'day':
+      startDate = today;
+      endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+      break;
+    case 'week':
+      startDate = new Date(today.setDate(today.getDate() - today.getDay()));
+      endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      break;
+    case 'month':
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      break;
+  }
+
+  for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
     const dayColumn = document.createElement('div');
     dayColumn.classList.add('day-column');
     
     const dayHeader = document.createElement('h3');
-    dayHeader.textContent = day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    dayHeader.textContent = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     dayColumn.appendChild(dayHeader);
 
     const dayEvents = events.filter(event => {
       const eventDate = new Date(event.start);
-      return eventDate.toDateString() === day.toDateString();
+      return eventDate.toDateString() === date.toDateString();
     });
 
     dayEvents.forEach(event => {
@@ -106,4 +132,10 @@ function displayMemberEvents(events, calendarElement) {
 
     calendarElement.appendChild(dayColumn);
   }
+}
+
+function changeView(view, member) {
+  currentView = view;
+  const calendarElement = document.querySelector(`#calendar-container .member-column:nth-child(${Array.from(document.querySelectorAll('#calendar-container .member-column')).findIndex(col => col.querySelector('.member-name').textContent === member) + 1}) .member-calendar`);
+  fetchAndDisplayEvents(member, calendarElement);
 }

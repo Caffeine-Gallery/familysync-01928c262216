@@ -44,6 +44,23 @@ body {
     margin-right: 20px;
 }
 
+.view-selector {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.view-selector button {
+    padding: 5px 10px;
+    background-color: #ddd;
+    border: none;
+    cursor: pointer;
+}
+
+.view-selector button:hover {
+    background-color: #bbb;
+}
+
 .member-avatar {
     width: 100px;
     height: 100px;
@@ -62,6 +79,8 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding: 10px;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .day-column {
