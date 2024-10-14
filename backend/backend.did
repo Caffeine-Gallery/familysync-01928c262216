@@ -2,9 +2,11 @@ service : {
   getAuthToken: (text) -> (opt text) query;
   getFamilyMembers: () -> (vec text);
   getFamilyName: () -> (text);
+  getMemberAvatar: (text) -> (text) query;
   getMemberEvents: (text) -> (vec record {
                                     start: text;
                                     summary: text;
                                   });
   setAuthToken: (text, text) -> ();
+  setMemberAvatar: (text, text) -> ();
 }

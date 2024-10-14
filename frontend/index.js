@@ -32,57 +32,51 @@ async function handleAuthenticated() {
 async function displayCalendar() {
   try {
     const familyMembers = await backend.getFamilyMembers();
-    const calendarTabs = document.getElementById('calendar-tabs');
     const calendarContainer = document.getElementById('calendar-container');
     
-    calendarTabs.innerHTML = '';
     calendarContainer.innerHTML = '';
     
-    familyMembers.forEach((member, index) => {
-      const tab = document.createElement('button');
-      tab.textContent = member;
-      tab.classList.add('calendar-tab');
-      if (index === 0) tab.classList.add('active');
-      tab.onclick = () => switchTab(member);
-      calendarTabs.appendChild(tab);
+    for (const member of familyMembers) {
+      const memberColumn = document.createElement('div');
+      memberColumn.classList.add('member-column');
+
+      const avatar = document.createElement('img');
+      avatar.src = await backend.getMemberAvatar(member);
+      avatar.alt = `${member}'s avatar`;
+      avatar.classList.add('member-avatar');
+      memberColumn.appendChild(avatar);
+
+      const nameElement = document.createElement('h2');
+      nameElement.textContent = member;
+      nameElement.classList.add('member-name');
+      memberColumn.appendChild(nameElement);
 
       const calendar = document.createElement('div');
-      calendar.id = `${member}-calendar`;
       calendar.classList.add('member-calendar');
-      if (index === 0) calendar.classList.add('active');
-      calendarContainer.appendChild(calendar);
-    });
+      memberColumn.appendChild(calendar);
 
-    await fetchAndDisplayEvents(familyMembers[0]);
+      calendarContainer.appendChild(memberColumn);
+
+      await fetchAndDisplayEvents(member, calendar);
+    }
   } catch (error) {
     console.error('Error displaying calendar:', error);
     document.getElementById('calendar-container').innerHTML = '<p>Error loading calendar. Please try again later.</p>';
   }
 }
 
-async function switchTab(member) {
-  document.querySelectorAll('.calendar-tab').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.member-calendar').forEach(calendar => calendar.classList.remove('active'));
-  
-  document.querySelector(`button.calendar-tab:nth-child(${Array.from(document.querySelectorAll('.calendar-tab')).findIndex(tab => tab.textContent === member) + 1})`).classList.add('active');
-  document.getElementById(`${member}-calendar`).classList.add('active');
-
-  await fetchAndDisplayEvents(member);
-}
-
-async function fetchAndDisplayEvents(member) {
+async function fetchAndDisplayEvents(member, calendarElement) {
   try {
     const events = await backend.getMemberEvents(member);
-    displayMemberEvents(member, events);
+    displayMemberEvents(events, calendarElement);
   } catch (error) {
     console.error(`Error fetching events for ${member}:`, error);
-    document.getElementById(`${member}-calendar`).innerHTML = '<p>Error loading events. Please try again later.</p>';
+    calendarElement.innerHTML = '<p>Error loading events. Please try again later.</p>';
   }
 }
 
-function displayMemberEvents(member, events) {
-  const calendarDiv = document.getElementById(`${member}-calendar`);
-  calendarDiv.innerHTML = '';
+function displayMemberEvents(events, calendarElement) {
+  calendarElement.innerHTML = '';
 
   const today = new Date();
   const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
@@ -110,6 +104,6 @@ function displayMemberEvents(member, events) {
       dayColumn.appendChild(eventDiv);
     });
 
-    calendarDiv.appendChild(dayColumn);
+    calendarElement.appendChild(dayColumn);
   }
 }
