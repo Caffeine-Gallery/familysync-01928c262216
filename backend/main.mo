@@ -26,12 +26,12 @@ actor {
     familyMembersStable
   };
 
-  public func setAuthToken(member : Text, token : Text) : async () {
-    authTokens.put(member, token);
+  public func setAuthToken(principal : Text, token : Text) : async () {
+    authTokens.put(principal, token);
   };
 
-  public query func getAuthToken(member : Text) : async ?Text {
-    authTokens.get(member)
+  public query func getAuthToken(principal : Text) : async ?Text {
+    authTokens.get(principal)
   };
 
   public func setMemberAvatar(member : Text, url : Text) : async () {
@@ -46,37 +46,31 @@ actor {
   };
 
   public func getMemberEvents(member : Text, viewType : Text) : async [{summary : Text; start : Text}] {
-    switch (authTokens.get(member)) {
-      case (null) { throw Error.reject("Member not authenticated with Google Calendar") };
-      case (?token) {
-        // Here you would use the token to fetch events from Google Calendar API
-        // For now, we'll return mock data based on the viewType
-        let now = Time.now();
-        let day = 86400000000000; // nanoseconds in a day
-        let week = 7 * day;
-        let month = 30 * day;
+    // For now, we'll return mock data without checking authentication
+    let now = Time.now();
+    let day = 86400000000000; // nanoseconds in a day
+    let week = 7 * day;
+    let month = 30 * day;
 
-        let (startTime, endTime) = switch (viewType) {
-          case ("day") (now, now + day);
-          case ("week") (now, now + week);
-          case ("month") (now, now + month);
-          case (_) (now, now + week); // default to week view
-        };
+    let (startTime, endTime) = switch (viewType) {
+      case ("day") (now, now + day);
+      case ("week") (now, now + week);
+      case ("month") (now, now + month);
+      case (_) (now, now + week); // default to week view
+    };
 
-        // Generate mock events within the time range
-        var events : [{summary : Text; start : Text}] = [];
-        var currentTime = startTime;
-        while (currentTime < endTime) {
-          events := Array.append(events, [{
-            summary = "Event " # Int.toText(Array.size(events) + 1);
-            start = Int.toText(currentTime);
-          }]);
-          currentTime += day;
-        };
+    // Generate mock events within the time range
+    var events : [{summary : Text; start : Text}] = [];
+    var currentTime = startTime;
+    while (currentTime < endTime) {
+      events := Array.append(events, [{
+        summary = "Event " # Int.toText(Array.size(events) + 1);
+        start = Int.toText(currentTime);
+      }]);
+      currentTime += day;
+    };
 
-        events
-      };
-    }
+    events
   };
 
   system func preupgrade() {

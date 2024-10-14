@@ -30,6 +30,9 @@ async function login() {
 
 async function handleAuthenticated() {
   document.getElementById('auth-button').style.display = 'none';
+  const identity = await authClient.getIdentity();
+  const principal = identity.getPrincipal().toString();
+  await backend.setAuthToken(principal, "dummy_token"); // In a real app, you'd get a proper token
   await displayCalendar();
 }
 
@@ -85,7 +88,7 @@ async function fetchAndDisplayEvents(member, calendarElement) {
     displayMemberEvents(events, calendarElement);
   } catch (error) {
     console.error(`Error fetching events for ${member}:`, error);
-    calendarElement.innerHTML = '<p>Error loading events. Please try again later.</p>';
+    calendarElement.innerHTML = '<p>No events available. Please authenticate to view events.</p>';
   }
 }
 
@@ -119,14 +122,14 @@ function displayMemberEvents(events, calendarElement) {
     dayColumn.appendChild(dayHeader);
 
     const dayEvents = events.filter(event => {
-      const eventDate = new Date(event.start);
+      const eventDate = new Date(parseInt(event.start));
       return eventDate.toDateString() === date.toDateString();
     });
 
     dayEvents.forEach(event => {
       const eventDiv = document.createElement('div');
       eventDiv.classList.add('event');
-      eventDiv.textContent = `${event.summary} (${new Date(event.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+      eventDiv.textContent = `${event.summary} (${new Date(parseInt(event.start)).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
       dayColumn.appendChild(eventDiv);
     });
 
